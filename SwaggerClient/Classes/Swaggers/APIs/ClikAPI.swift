@@ -14,11 +14,12 @@ open class ClikAPI {
     /**
      Create or update one or multiple entries independently
      
+     - parameter mandant: (path) The mandant to operate on 
      - parameter body: (body)  (optional)
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func createOrUpdateEntries(body: [Entry]? = nil, completion: @escaping ((_ data: [Entry]?,_ error: Error?) -> Void)) {
-        createOrUpdateEntriesWithRequestBuilder(body: body).execute { (response, error) -> Void in
+    open class func createOrUpdateEntries(mandant: String, body: [Entry]? = nil, completion: @escaping ((_ data: [Entry]?,_ error: Error?) -> Void)) {
+        createOrUpdateEntriesWithRequestBuilder(mandant: mandant, body: body).execute { (response, error) -> Void in
             completion(response?.body, error)
         }
     }
@@ -31,12 +32,16 @@ open class ClikAPI {
        - type: oauth2
        - name: oauth2
      
+     - parameter mandant: (path) The mandant to operate on 
      - parameter body: (body)  (optional)
 
      - returns: RequestBuilder<[Entry]> 
      */
-    open class func createOrUpdateEntriesWithRequestBuilder(body: [Entry]? = nil) -> RequestBuilder<[Entry]> {
-        let path = "/mandants/{mandant}/entries"
+    open class func createOrUpdateEntriesWithRequestBuilder(mandant: String, body: [Entry]? = nil) -> RequestBuilder<[Entry]> {
+        var path = "/mandants/{mandant}/entries"
+        let mandantPreEscape = "\(mandant)"
+        let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
         let parameters = JSONEncodingHelper.encodingParameters(forEncodableObject: body)
 
@@ -51,10 +56,12 @@ open class ClikAPI {
     /**
      Delete a an entry by id
      
+     - parameter mandant: (path) The mandant to operate on 
+     - parameter _id: (path) The id of the entry to retrieve 
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func deleteEntryById(completion: @escaping ((_ data: Void?,_ error: Error?) -> Void)) {
-        deleteEntryByIdWithRequestBuilder().execute { (response, error) -> Void in
+    open class func deleteEntryById(mandant: String, _id: ObjectId, completion: @escaping ((_ data: Void?,_ error: Error?) -> Void)) {
+        deleteEntryByIdWithRequestBuilder(mandant: mandant, _id: _id).execute { (response, error) -> Void in
             if error == nil {
                 completion((), error)
             } else {
@@ -70,11 +77,20 @@ open class ClikAPI {
      - OAuth:
        - type: oauth2
        - name: oauth2
+     
+     - parameter mandant: (path) The mandant to operate on 
+     - parameter _id: (path) The id of the entry to retrieve 
 
      - returns: RequestBuilder<Void> 
      */
-    open class func deleteEntryByIdWithRequestBuilder() -> RequestBuilder<Void> {
-        let path = "/mandants/{mandant}/entries/{id}"
+    open class func deleteEntryByIdWithRequestBuilder(mandant: String, _id: ObjectId) -> RequestBuilder<Void> {
+        var path = "/mandants/{mandant}/entries/{id}"
+        let mandantPreEscape = "\(mandant)"
+        let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
+        let _idPreEscape = "\(_id)"
+        let _idPostEscape = _idPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{id}", with: _idPostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
         let parameters: [String:Any]? = nil
         
@@ -87,47 +103,17 @@ open class ClikAPI {
 
 
     /**
-     * enum for parameter combinationConstraints
-     */
-    public enum _getEnumerationConstraints: Bool { 
-    }
-
-    /**
-     * enum for parameter mandant
-     */
-    public enum _getEnumerationConstraints: String { 
-    }
-
-    /**
-     * enum for parameter enumeratorType
-     */
-    public enum _getEnumerationConstraints: EnumerationType { 
-    }
-
-    /**
-     * enum for parameter xPage
-     */
-    public enum _getEnumerationConstraints: String { 
-    }
-
-    /**
-     * enum for parameter xPageSize
-     */
-    public enum _getEnumerationConstraints: Int { 
-    }
-
-    /**
      Read constraints for a single enumerator
      
-     - parameter combinationConstraints: (query) Includes/excludes the property combinationConstraints. Must be set explicitly to false for performance reasons.  
      - parameter mandant: (path) The mandant to operate on 
      - parameter enumeratorType: (path) The enumerator type to retrieve restrictions for 
+     - parameter combinationConstraints: (query) Includes/excludes the property combinationConstraints. Must be set explicitly to false for performance reasons.  
      - parameter xPage: (header) A server defined page reference returned in the header \&quot;x-next-page\&quot; (optional)
      - parameter xPageSize: (header) How many items to return in a page (optional)
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func getEnumerationConstraints(combinationConstraints: _getEnumerationConstraints, mandant: _getEnumerationConstraints, enumeratorType: _getEnumerationConstraints, xPage: _getEnumerationConstraints? = nil, xPageSize: _getEnumerationConstraints? = nil, completion: @escaping ((_ data: [EnumeratorConstraints]?,_ error: Error?) -> Void)) {
-        getEnumerationConstraintsWithRequestBuilder(combinationConstraints: combinationConstraints, mandant: mandant, enumeratorType: enumeratorType, xPage: xPage, xPageSize: xPageSize).execute { (response, error) -> Void in
+    open class func getEnumerationConstraints(mandant: String, enumeratorType: EnumerationType, combinationConstraints: Bool, xPage: String? = nil, xPageSize: Int? = nil, completion: @escaping ((_ data: [EnumeratorConstraints]?,_ error: Error?) -> Void)) {
+        getEnumerationConstraintsWithRequestBuilder(mandant: mandant, enumeratorType: enumeratorType, combinationConstraints: combinationConstraints, xPage: xPage, xPageSize: xPageSize).execute { (response, error) -> Void in
             completion(response?.body, error)
         }
     }
@@ -141,20 +127,20 @@ open class ClikAPI {
        - name: oauth2
      - responseHeaders: [x-next-page(String)]
      
-     - parameter combinationConstraints: () Includes/excludes the property combinationConstraints. Must be set explicitly to false for performance reasons.  
      - parameter mandant: (path) The mandant to operate on 
      - parameter enumeratorType: (path) The enumerator type to retrieve restrictions for 
+     - parameter combinationConstraints: () Includes/excludes the property combinationConstraints. Must be set explicitly to false for performance reasons.  
      - parameter xPage: (header) A server defined page reference returned in the header \&quot;x-next-page\&quot; (optional)
      - parameter xPageSize: (header) How many items to return in a page (optional)
 
      - returns: RequestBuilder<[EnumeratorConstraints]> 
      */
-    open class func getEnumerationConstraintsWithRequestBuilder(combinationConstraints: _getEnumerationConstraints, mandant: _getEnumerationConstraints, enumeratorType: _getEnumerationConstraints, xPage: _getEnumerationConstraints? = nil, xPageSize: _getEnumerationConstraints? = nil) -> RequestBuilder<[EnumeratorConstraints]> {
+    open class func getEnumerationConstraintsWithRequestBuilder(mandant: String, enumeratorType: EnumerationType, combinationConstraints: Bool, xPage: String? = nil, xPageSize: Int? = nil) -> RequestBuilder<[EnumeratorConstraints]> {
         var path = "/mandants/{mandant}/enumeratorConstraints/{enumeratorType}/"
-        let mandantPreEscape = "\(mandant.rawValue)"
+        let mandantPreEscape = "\(mandant)"
         let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
-        let enumeratorTypePreEscape = "\(enumeratorType.rawValue)"
+        let enumeratorTypePreEscape = "\(enumeratorType)"
         let enumeratorTypePostEscape = enumeratorTypePreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         path = path.replacingOccurrences(of: "{enumeratorType}", with: enumeratorTypePostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
@@ -162,11 +148,11 @@ open class ClikAPI {
         
         var url = URLComponents(string: URLString)
         url?.queryItems = APIHelper.mapValuesToQueryItems([
-            "combinationConstraints": combinationConstraints.rawValue
+            "combinationConstraints": combinationConstraints
         ])
         let nillableHeaders: [String: Any?] = [
-            "x-page": xPage?.rawValue,
-            "x-page-size": xPageSize?.rawValue
+            "x-page": xPage,
+            "x-page-size": xPageSize?.encodeToJSON()
         ]
         let headerParameters = APIHelper.rejectNilHeaders(nillableHeaders)
 
@@ -175,36 +161,6 @@ open class ClikAPI {
         return requestBuilder.init(method: "GET", URLString: (url?.string ?? URLString), parameters: parameters, isBody: , headers: headerParameters)
     }
 
-
-    /**
-     * enum for parameter mandant
-     */
-    public enum _listEntries: String { 
-    }
-
-    /**
-     * enum for parameter status
-     */
-    public enum _listEntries: String { 
-    }
-
-    /**
-     * enum for parameter startDate
-     */
-    public enum _listEntries: Date { 
-    }
-
-    /**
-     * enum for parameter xPage
-     */
-    public enum _listEntries: String { 
-    }
-
-    /**
-     * enum for parameter xPageSize
-     */
-    public enum _listEntries: Int { 
-    }
 
     /**
      List entries
@@ -216,7 +172,7 @@ open class ClikAPI {
      - parameter xPageSize: (header) How many items to return in a page (optional)
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func listEntries(mandant: _listEntries, status: [EntryStatus]? = nil, startDate: _listEntries? = nil, xPage: _listEntries? = nil, xPageSize: _listEntries? = nil, completion: @escaping ((_ data: [Entry]?,_ error: Error?) -> Void)) {
+    open class func listEntries(mandant: String, status: [EntryStatus]? = nil, startDate: Date? = nil, xPage: String? = nil, xPageSize: Int? = nil, completion: @escaping ((_ data: [Entry]?,_ error: Error?) -> Void)) {
         listEntriesWithRequestBuilder(mandant: mandant, status: status, startDate: startDate, xPage: xPage, xPageSize: xPageSize).execute { (response, error) -> Void in
             completion(response?.body, error)
         }
@@ -239,9 +195,9 @@ open class ClikAPI {
 
      - returns: RequestBuilder<[Entry]> 
      */
-    open class func listEntriesWithRequestBuilder(mandant: _listEntries, status: [EntryStatus]? = nil, startDate: _listEntries? = nil, xPage: _listEntries? = nil, xPageSize: _listEntries? = nil) -> RequestBuilder<[Entry]> {
+    open class func listEntriesWithRequestBuilder(mandant: String, status: [EntryStatus]? = nil, startDate: Date? = nil, xPage: String? = nil, xPageSize: Int? = nil) -> RequestBuilder<[Entry]> {
         var path = "/mandants/{mandant}/entries"
-        let mandantPreEscape = "\(mandant.rawValue)"
+        let mandantPreEscape = "\(mandant)"
         let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
@@ -253,11 +209,11 @@ open class ClikAPI {
         ])
         var url = URLComponents(string: URLString)
         url?.queryItems = APIHelper.mapValuesToQueryItems([
-            "startDate": startDate?.rawValue
+            "startDate": startDate
         ])
         let nillableHeaders: [String: Any?] = [
-            "x-page": xPage?.rawValue,
-            "x-page-size": xPageSize?.rawValue
+            "x-page": xPage,
+            "x-page-size": xPageSize?.encodeToJSON()
         ]
         let headerParameters = APIHelper.rejectNilHeaders(nillableHeaders)
 
@@ -266,36 +222,6 @@ open class ClikAPI {
         return requestBuilder.init(method: "GET", URLString: (url?.string ?? URLString), parameters: parameters, isBody: , headers: headerParameters)
     }
 
-
-    /**
-     * enum for parameter mandant
-     */
-    public enum _listEnumerators: String { 
-    }
-
-    /**
-     * enum for parameter type
-     */
-    public enum _listEnumerators: EnumerationType { 
-    }
-
-    /**
-     * enum for parameter parentProject
-     */
-    public enum _listEnumerators: String { 
-    }
-
-    /**
-     * enum for parameter xPage
-     */
-    public enum _listEnumerators: String { 
-    }
-
-    /**
-     * enum for parameter xPageSize
-     */
-    public enum _listEnumerators: Int { 
-    }
 
     /**
      List enumerators
@@ -307,7 +233,7 @@ open class ClikAPI {
      - parameter xPageSize: (header) How many items to return in a page (optional)
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func listEnumerators(mandant: _listEnumerators, type: _listEnumerators, parentProject: _listEnumerators? = nil, xPage: _listEnumerators? = nil, xPageSize: _listEnumerators? = nil, completion: @escaping ((_ data: [Enumerator]?,_ error: Error?) -> Void)) {
+    open class func listEnumerators(mandant: String, type: EnumerationType, parentProject: String? = nil, xPage: String? = nil, xPageSize: Int? = nil, completion: @escaping ((_ data: [Enumerator]?,_ error: Error?) -> Void)) {
         listEnumeratorsWithRequestBuilder(mandant: mandant, type: type, parentProject: parentProject, xPage: xPage, xPageSize: xPageSize).execute { (response, error) -> Void in
             completion(response?.body, error)
         }
@@ -330,12 +256,12 @@ open class ClikAPI {
 
      - returns: RequestBuilder<[Enumerator]> 
      */
-    open class func listEnumeratorsWithRequestBuilder(mandant: _listEnumerators, type: _listEnumerators, parentProject: _listEnumerators? = nil, xPage: _listEnumerators? = nil, xPageSize: _listEnumerators? = nil) -> RequestBuilder<[Enumerator]> {
+    open class func listEnumeratorsWithRequestBuilder(mandant: String, type: EnumerationType, parentProject: String? = nil, xPage: String? = nil, xPageSize: Int? = nil) -> RequestBuilder<[Enumerator]> {
         var path = "/mandants/{mandant}/enumerators/{type}"
-        let mandantPreEscape = "\(mandant.rawValue)"
+        let mandantPreEscape = "\(mandant)"
         let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
-        let typePreEscape = "\(type.rawValue)"
+        let typePreEscape = "\(type)"
         let typePostEscape = typePreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         path = path.replacingOccurrences(of: "{type}", with: typePostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
@@ -343,11 +269,11 @@ open class ClikAPI {
         
         var url = URLComponents(string: URLString)
         url?.queryItems = APIHelper.mapValuesToQueryItems([
-            "parentProject": parentProject?.rawValue
+            "parentProject": parentProject
         ])
         let nillableHeaders: [String: Any?] = [
-            "x-page": xPage?.rawValue,
-            "x-page-size": xPageSize?.rawValue
+            "x-page": xPage,
+            "x-page-size": xPageSize?.encodeToJSON()
         ]
         let headerParameters = APIHelper.rejectNilHeaders(nillableHeaders)
 
@@ -360,10 +286,12 @@ open class ClikAPI {
     /**
      Read an entry by its id
      
+     - parameter mandant: (path) The mandant to operate on 
+     - parameter _id: (path) The id of the entry to retrieve 
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func readEntry(completion: @escaping ((_ data: Entry?,_ error: Error?) -> Void)) {
-        readEntryWithRequestBuilder().execute { (response, error) -> Void in
+    open class func readEntry(mandant: String, _id: ObjectId, completion: @escaping ((_ data: Entry?,_ error: Error?) -> Void)) {
+        readEntryWithRequestBuilder(mandant: mandant, _id: _id).execute { (response, error) -> Void in
             completion(response?.body, error)
         }
     }
@@ -375,11 +303,20 @@ open class ClikAPI {
      - OAuth:
        - type: oauth2
        - name: oauth2
+     
+     - parameter mandant: (path) The mandant to operate on 
+     - parameter _id: (path) The id of the entry to retrieve 
 
      - returns: RequestBuilder<Entry> 
      */
-    open class func readEntryWithRequestBuilder() -> RequestBuilder<Entry> {
-        let path = "/mandants/{mandant}/entries/{id}"
+    open class func readEntryWithRequestBuilder(mandant: String, _id: ObjectId) -> RequestBuilder<Entry> {
+        var path = "/mandants/{mandant}/entries/{id}"
+        let mandantPreEscape = "\(mandant)"
+        let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
+        let _idPreEscape = "\(_id)"
+        let _idPostEscape = _idPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{id}", with: _idPostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
         let parameters: [String:Any]? = nil
         
@@ -394,10 +331,13 @@ open class ClikAPI {
     /**
      Read a specific enumerator
      
+     - parameter mandant: (path) The mandant to operate on 
+     - parameter type: (path) The enumerator type 
+     - parameter _id: (path) The id of the enumerator to retrieve 
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func readEnumeratorById(completion: @escaping ((_ data: Enumerator?,_ error: Error?) -> Void)) {
-        readEnumeratorByIdWithRequestBuilder().execute { (response, error) -> Void in
+    open class func readEnumeratorById(mandant: String, type: EnumerationType, _id: ObjectId, completion: @escaping ((_ data: Enumerator?,_ error: Error?) -> Void)) {
+        readEnumeratorByIdWithRequestBuilder(mandant: mandant, type: type, _id: _id).execute { (response, error) -> Void in
             completion(response?.body, error)
         }
     }
@@ -409,11 +349,24 @@ open class ClikAPI {
      - OAuth:
        - type: oauth2
        - name: oauth2
+     
+     - parameter mandant: (path) The mandant to operate on 
+     - parameter type: (path) The enumerator type 
+     - parameter _id: (path) The id of the enumerator to retrieve 
 
      - returns: RequestBuilder<Enumerator> 
      */
-    open class func readEnumeratorByIdWithRequestBuilder() -> RequestBuilder<Enumerator> {
-        let path = "/mandants/{mandant}/enumerators/{type}/{id}"
+    open class func readEnumeratorByIdWithRequestBuilder(mandant: String, type: EnumerationType, _id: ObjectId) -> RequestBuilder<Enumerator> {
+        var path = "/mandants/{mandant}/enumerators/{type}/{id}"
+        let mandantPreEscape = "\(mandant)"
+        let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
+        let typePreEscape = "\(type)"
+        let typePostEscape = typePreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{type}", with: typePostEscape, options: .literal, range: nil)
+        let _idPreEscape = "\(_id)"
+        let _idPostEscape = _idPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{id}", with: _idPostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
         let parameters: [String:Any]? = nil
         
@@ -426,30 +379,6 @@ open class ClikAPI {
 
 
     /**
-     * enum for parameter mandant
-     */
-    public enum _readEnumeratorConstraintsByEnumeratorId: String { 
-    }
-
-    /**
-     * enum for parameter enumeratorType
-     */
-    public enum _readEnumeratorConstraintsByEnumeratorId: EnumerationType { 
-    }
-
-    /**
-     * enum for parameter enumeratorId
-     */
-    public enum _readEnumeratorConstraintsByEnumeratorId: ObjectId { 
-    }
-
-    /**
-     * enum for parameter combinationConstraints
-     */
-    public enum _readEnumeratorConstraintsByEnumeratorId: Bool { 
-    }
-
-    /**
      Read constraints for a single enumerator
      
      - parameter mandant: (path) The mandant to operate on 
@@ -458,7 +387,7 @@ open class ClikAPI {
      - parameter combinationConstraints: (query) Includes/excludes the property combinationConstraints (optional)
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func readEnumeratorConstraintsByEnumeratorId(mandant: _readEnumeratorConstraintsByEnumeratorId, enumeratorType: _readEnumeratorConstraintsByEnumeratorId, enumeratorId: _readEnumeratorConstraintsByEnumeratorId, combinationConstraints: _readEnumeratorConstraintsByEnumeratorId? = nil, completion: @escaping ((_ data: EnumeratorConstraints?,_ error: Error?) -> Void)) {
+    open class func readEnumeratorConstraintsByEnumeratorId(mandant: String, enumeratorType: EnumerationType, enumeratorId: ObjectId, combinationConstraints: Bool? = nil, completion: @escaping ((_ data: EnumeratorConstraints?,_ error: Error?) -> Void)) {
         readEnumeratorConstraintsByEnumeratorIdWithRequestBuilder(mandant: mandant, enumeratorType: enumeratorType, enumeratorId: enumeratorId, combinationConstraints: combinationConstraints).execute { (response, error) -> Void in
             completion(response?.body, error)
         }
@@ -479,15 +408,15 @@ open class ClikAPI {
 
      - returns: RequestBuilder<EnumeratorConstraints> 
      */
-    open class func readEnumeratorConstraintsByEnumeratorIdWithRequestBuilder(mandant: _readEnumeratorConstraintsByEnumeratorId, enumeratorType: _readEnumeratorConstraintsByEnumeratorId, enumeratorId: _readEnumeratorConstraintsByEnumeratorId, combinationConstraints: _readEnumeratorConstraintsByEnumeratorId? = nil) -> RequestBuilder<EnumeratorConstraints> {
+    open class func readEnumeratorConstraintsByEnumeratorIdWithRequestBuilder(mandant: String, enumeratorType: EnumerationType, enumeratorId: ObjectId, combinationConstraints: Bool? = nil) -> RequestBuilder<EnumeratorConstraints> {
         var path = "/mandants/{mandant}/enumeratorConstraints/{enumeratorType}/{enumeratorId}"
-        let mandantPreEscape = "\(mandant.rawValue)"
+        let mandantPreEscape = "\(mandant)"
         let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
-        let enumeratorTypePreEscape = "\(enumeratorType.rawValue)"
+        let enumeratorTypePreEscape = "\(enumeratorType)"
         let enumeratorTypePostEscape = enumeratorTypePreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         path = path.replacingOccurrences(of: "{enumeratorType}", with: enumeratorTypePostEscape, options: .literal, range: nil)
-        let enumeratorIdPreEscape = "\(enumeratorId.rawValue)"
+        let enumeratorIdPreEscape = "\(enumeratorId)"
         let enumeratorIdPostEscape = enumeratorIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
         path = path.replacingOccurrences(of: "{enumeratorId}", with: enumeratorIdPostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
@@ -495,7 +424,7 @@ open class ClikAPI {
         
         var url = URLComponents(string: URLString)
         url?.queryItems = APIHelper.mapValuesToQueryItems([
-            "combinationConstraints": combinationConstraints?.rawValue
+            "combinationConstraints": combinationConstraints
         ])
 
         let requestBuilder: RequestBuilder<EnumeratorConstraints>.Type = SwaggerClientAPI.requestBuilderFactory.getBuilder()
@@ -507,11 +436,13 @@ open class ClikAPI {
     /**
      Create or update an entry by id
      
+     - parameter mandant: (path) The mandant to operate on 
+     - parameter _id: (path) The id of the entry to retrieve 
      - parameter body: (body)  (optional)
      - parameter completion: completion handler to receive the data and the error objects
      */
-    open class func updateOrCreateEntryById(body: Entry? = nil, completion: @escaping ((_ data: Entry?,_ error: Error?) -> Void)) {
-        updateOrCreateEntryByIdWithRequestBuilder(body: body).execute { (response, error) -> Void in
+    open class func updateOrCreateEntryById(mandant: String, _id: ObjectId, body: Entry? = nil, completion: @escaping ((_ data: Entry?,_ error: Error?) -> Void)) {
+        updateOrCreateEntryByIdWithRequestBuilder(mandant: mandant, _id: _id, body: body).execute { (response, error) -> Void in
             completion(response?.body, error)
         }
     }
@@ -524,12 +455,20 @@ open class ClikAPI {
        - type: oauth2
        - name: oauth2
      
+     - parameter mandant: (path) The mandant to operate on 
+     - parameter _id: (path) The id of the entry to retrieve 
      - parameter body: (body)  (optional)
 
      - returns: RequestBuilder<Entry> 
      */
-    open class func updateOrCreateEntryByIdWithRequestBuilder(body: Entry? = nil) -> RequestBuilder<Entry> {
-        let path = "/mandants/{mandant}/entries/{id}"
+    open class func updateOrCreateEntryByIdWithRequestBuilder(mandant: String, _id: ObjectId, body: Entry? = nil) -> RequestBuilder<Entry> {
+        var path = "/mandants/{mandant}/entries/{id}"
+        let mandantPreEscape = "\(mandant)"
+        let mandantPostEscape = mandantPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{mandant}", with: mandantPostEscape, options: .literal, range: nil)
+        let _idPreEscape = "\(_id)"
+        let _idPostEscape = _idPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        path = path.replacingOccurrences(of: "{id}", with: _idPostEscape, options: .literal, range: nil)
         let URLString = SwaggerClientAPI.basePath + path
         let parameters = JSONEncodingHelper.encodingParameters(forEncodableObject: body)
 
